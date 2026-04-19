@@ -32,7 +32,7 @@ INSTALL_SH="${TMP_DIR}/install.sh"
 curl -fsSL "$INSTALL_SCRIPT_URL" -o "$INSTALL_SH"
 
 if [ -z "$TARGET_VERSION" ]; then
-  TARGET_VERSION="$(sed -n 's/.*\/lab\/\([^/]*\)\/linux\/.*/\1/p' "$INSTALL_SH" | head -n 1)"
+  TARGET_VERSION="$(sed -n 's|.*downloads.cursor.com/lab/\([^/]*\)/.*|\1|p' "$INSTALL_SH" | head -n 1)"
 fi
 
 if [ -z "$TARGET_VERSION" ]; then
