@@ -1,0 +1,10 @@
+.git
+.github
+.cursor
+agent-transcripts
+*.md
+LICENSE
+*.log
+*.tmp
+*.swp
+*.swo

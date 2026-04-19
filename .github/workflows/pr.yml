@@ -1,0 +1,54 @@
+name: PR Image Build Check
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  build-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve cursor-cli version
+        id: cursor
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(curl -fsSL https://cursor.com/install | sed -n 's/.*\/lab\/\([^/]*\)\/linux\/.*/\1/p' | head -n 1)"
+          if [ -z "${version}" ]; then
+            echo "Failed to resolve cursor-cli version" >&2
+            exit 1
+          fi
+          echo "version=${version}" >> "${GITHUB_OUTPUT}"
+
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Resolve build timestamp
+        id: stamp
+        shell: bash
+        run: echo "created=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "${GITHUB_OUTPUT}"
+
+      - name: Build image (no push)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: false
+          build-args: |
+            CURSOR_CLI_VERSION=${{ steps.cursor.outputs.version }}
+            IMAGE_VERSION=${{ steps.cursor.outputs.version }}
+            VCS_REF=${{ github.sha }}
+            VCS_URL=${{ github.server_url }}/${{ github.repository }}
+            IMAGE_CREATED=${{ steps.stamp.outputs.created }}
+          cache-from: type=gha

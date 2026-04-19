@@ -1,0 +1,9 @@
+.DS_Store
+.cursor/
+*.log
+*.tmp
+*.swp
+*.swo
+dist/
+build/
+coverage/
