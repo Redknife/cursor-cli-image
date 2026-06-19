@@ -7,8 +7,6 @@ on:
     tags:
       - "v*"
   workflow_dispatch:
-  schedule:
-    - cron: "0 3 * * *"
 
 permissions:
   contents: read
@@ -63,7 +61,6 @@ jobs:
             type=sha,prefix=sha-
             type=ref,event=tag
             type=raw,value=${{ steps.cursor.outputs.version }}
-            type=raw,value={{date 'YYYYMMDD'}},enable=${{ github.event_name == 'schedule' }}
 
       - name: Build and push image
         id: build

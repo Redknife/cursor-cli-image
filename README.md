@@ -12,6 +12,9 @@ The image is designed for automated review workflows (including GitLab Merge Req
 - `cursor-cli` (`agent`, `cursor-agent`)
 - `git`, `curl`, `ca-certificates`, `openssh-client`
 - `jq`, `ripgrep`, `bash`, `diffutils`, `less`, `tini`
+- Built-in review subagents in `~/.cursor/agents/`:
+  - `code-reviewer` (Senior Staff Engineer perspective)
+  - `security-auditor` (Security Engineer perspective)
 
 ## Quick start
 
@@ -26,13 +29,49 @@ docker run --rm \
   agent -p "review the diff and suggest fixes"
 ```
 
+## Built-in review personas
+
+This image ships pre-configured subagent personas for targeted review workflows.
+
+| Agent | Role | Perspective |
+|-------|------|-------------|
+| `code-reviewer` | Senior Staff Engineer | Five-axis code review with "would a staff engineer approve this?" standard |
+| `security-auditor` | Security Engineer | Vulnerability detection, threat modeling, OWASP assessment |
+
+These personas are installed in `~/.cursor/agents/`, so they are available in `cursor-cli` without extra setup.
+
+Project-local subagents in `.cursor/agents/` still take precedence when names conflict.
+
+## Review examples
+
+Use the bundled `code-reviewer` persona:
+
+```bash
+docker run --rm \
+  -e CURSOR_API_KEY \
+  -v "$PWD":/work \
+  -w /work \
+  ghcr.io/redknife/cursor-cli:latest \
+  agent -p "/code-reviewer Review the current branch diff. Report Critical, Important, and Suggestion findings, plus missing tests."
+```
+
+Use the bundled `security-auditor` persona:
+
+```bash
+docker run --rm \
+  -e CURSOR_API_KEY \
+  -v "$PWD":/work \
+  -w /work \
+  ghcr.io/redknife/cursor-cli:latest \
+  agent -p "/security-auditor Audit the current branch for OWASP Top 10 risks and return findings by severity with concrete mitigations."
+```
+
 ## Tags
 
-- `latest` - default branch scheduled refresh and push builds.
+- `latest` - updated on default branch push builds and manual workflow dispatch.
 - `<cursor-version>` - resolved from `https://cursor.com/install` during image build.
 - `sha-<short-sha>` - immutable tag for the source revision.
 - `v*` - tags created from Git refs such as `v1.0.0`.
-- `YYYYMMDD` - daily scheduled build tag.
 
 ## Supported architectures
 
@@ -49,7 +88,7 @@ review_mr:
     GIT_STRATEGY: fetch
   script:
     - agent --version
-    - agent -p "Review this merge request diff for bugs, risks, and missing tests."
+    - agent -p "/code-reviewer Review this merge request diff for bugs, risks, and missing tests."
 ```
 
 Set `CURSOR_API_KEY` in **GitLab CI/CD Variables** (masked + protected as needed).
@@ -65,7 +104,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: agent --version
-      - run: agent -p "Review the repository changes in this branch."
+      - run: agent -p "/code-reviewer Review the repository changes in this branch."
         env:
           CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
 ```

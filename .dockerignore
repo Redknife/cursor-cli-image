@@ -3,6 +3,8 @@
 .cursor
 agent-transcripts
 *.md
+!agents/
+!agents/*.md
 LICENSE
 *.log
 *.tmp

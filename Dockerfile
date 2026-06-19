@@ -36,11 +36,14 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 COPY scripts/install-cursor-cli.sh /usr/local/bin/install-cursor-cli.sh
+COPY agents /usr/local/share/cursor-agent/subagents
 
 RUN chmod +x /usr/local/bin/install-cursor-cli.sh \
     && /usr/local/bin/install-cursor-cli.sh "${CURSOR_CLI_VERSION}" \
     && useradd --create-home --uid 1000 --shell /bin/bash agent \
-    && mkdir -p /home/agent/.local \
+    && mkdir -p /home/agent/.local /home/agent/.cursor/agents /root/.cursor/agents \
+    && cp /usr/local/share/cursor-agent/subagents/*.md /home/agent/.cursor/agents/ \
+    && cp /usr/local/share/cursor-agent/subagents/*.md /root/.cursor/agents/ \
     && chown -R agent:agent /home/agent
 
 ENTRYPOINT ["/usr/bin/tini", "--"]
